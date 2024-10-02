@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>CryptoCourier</title>
+  <link rel="stylesheet" type="text/css" href="./css/index.css">
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="navbar">
+    <h1>Inventory Management</h1>
+    <p> Account: <span id="account-number"></span></p>
+  </nav>
+
+  <div class="body">
+    <div class="forms">
+      <div class="form">
+        <h2>Add Inventory</h2>
+        <input type="text" id="courierTitle" placeholder="Title" />
+        <input type="text" id="courierDescription" placeholder="Description" />
+        <input type="number" id="courierValue" placeholder="Value (ETH)" step="0.001" />
+        <button id="addCourierButton">Add Inventory</button>
+      </div>
+
+      <div class="form">
+        <h2>Remove Inventory</h2>
+        <input type="number" id="courierId" placeholder="Inventory ID" />
+        <button id="removeCourierButton">Remove Inventory</button>
+      </div>
+
+    </div>
+
+    <h2>View Inventory</h2>
+    <button id="viewCouriersButton">View Inventory</button>
+    <div id="courierList" class="courier-container"></div>
+  </div>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
