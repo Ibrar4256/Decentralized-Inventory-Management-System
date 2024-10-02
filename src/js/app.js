@@ -73,9 +73,11 @@
       }
       App.contracts.courierManager.deployed().then(async function (instance) {
         courierManagerInstance = instance;
-        let retVal = await courierManagerInstance.addCourier(title, description, { from: accounts[0], value: value });
+        let retVal = courierManagerInstance.addCourier(title, description , { from: accounts[0], value: value });
         console.log(accounts[0]);
-        console.log('added')
+        const addresses = await courierManagerInstance.getAddresses.call();
+        console.log(addresses);
+        console.log('addd', accounts[0])
       }).catch(function (err) {
         console.log(err.message);
       });
@@ -144,54 +146,45 @@
   //}
 
   viewCouriers: async function (event) {
-    console.log('inside')
-
     event.preventDefault();
     var courierManagerInstance;
     const courierList = document.getElementById('courierList');
-    console.log(courierList);
 
     courierList.innerHTML = ''; // Clear the list before adding new entries
-    // console.log('going inside');
 
     try {
         // Get the deployed instance of the contract
-        console.log('inside');
         courierManagerInstance = await App.contracts.courierManager.deployed();
 
         // Call getAddresses to get the list of courier addresses
         const addresses = await courierManagerInstance.getAddresses.call();
-        console.log('addresses', addresses);
-        console.log('a');
-        console.log('addresses', addresses.length);
-
+        console.log(addresses[0]);
         // Loop through addresses and fetch courier details
         for (let i = 0; i < addresses.length; i++) {
             // Check if the address is valid
-            console.log('c',addresses[i]);
-            // if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
-                const courier = await courierManagerInstance.getCourier(addresses[i]);
-                console.log('courier details', courier);
+            if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
+                const courier = await courierManagerInstance.getCourier(i);
+                console.log('Courier details:', courier);
 
                 // Create and append a card for each courier
                 const card = document.createElement('div');
                 card.className = 'card parcel-card';
                 card.style.width = '18rem';
 
-                card.innerHTML =
-                    `<img class="card-img-top" height="100px" width="100px" src="/images/courier.png" alt="Card image cap">
-                     <h2>${courier[1]}</h2>
-                     <p>${courier[2]}</p>
-                     <div class="id-marker">&nbsp ${i} &nbsp </div>`;
-                     
+                card.innerHTML = `
+                    <img class="card-img-top" height="100px" width="100px" src="/images/courier.png" alt="Card image cap">
+                    <h2>${courier[1]}</h2>
+                    <p>${courier[2]}</p>
+                    <div class="id-marker">&nbsp ${i} &nbsp </div>
+                `;
                 courierList.appendChild(card);
             }
         }
-    // }
-     catch (err) {
+    } catch (err) {
         console.log('Error:', err.message);
     }
 }
+
 
   
 
