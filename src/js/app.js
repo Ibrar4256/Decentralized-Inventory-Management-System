@@ -63,7 +63,12 @@
     event.preventDefault();
     const title = document.getElementById('courierTitle').value;
     const description = document.getElementById('courierDescription').value;
-    const value = web3._extend.utils.toWei(document.getElementById('courierValue').value, 'ether');
+    const category = document.getElementById('inventoryCategory').value;
+    const location = document.getElementById('inventoryLocation').value;
+    const quantity = parseInt(document.getElementById('inventoryQuantity').value);
+  
+
+    // const value = web3._extend.utils.toWei(document.getElementById('courierValue').value, 'ether');
 
     var courierManagerInstance;
 
@@ -73,11 +78,13 @@
       }
       App.contracts.courierManager.deployed().then(async function (instance) {
         courierManagerInstance = instance;
-        let retVal = courierManagerInstance.addCourier(title, description , { from: accounts[0], value: value });
-        console.log(accounts[0]);
+
+        // const fixedAmount = web3._extend.utils.toWei("0.01", "ether"); // Fixed value for transaction
+        await courierManagerInstance.addCourier(title, description, category, location, quantity , { from: accounts[0]});
+        console.log("Inventory added by", accounts[0]);
+
         const addresses = await courierManagerInstance.getAddresses.call();
-        console.log(addresses);
-        console.log('addd', accounts[0])
+         console.log("Inventory addresses:", addresses);
       }).catch(function (err) {
         console.log(err.message);
       });
@@ -97,53 +104,14 @@
       var account = accounts[0];
       App.contracts.courierManager.deployed().then(async function (instance) {
         courierManagerInstance = instance;
-        console.log(id);
-        let retVal = await courierManagerInstance.removeCourier(id, { from: account });
-        console.log(retVal);
-        console.log('Removed')
+        await courierManagerInstance.removeCourier(id, { from: account });
+        console.log("Inventory Issued");
 
       }).catch(function (err) {
         console.log(err);
       });
     })
   },
-
-  // viewCouriers: async function (event) {
-  //   event.preventDefault();
-  //   var courierManagerInstance;
-  //   const courierList = document.getElementById('courierList');
-  //   courierList.innerHTML = '';
-  //   App.contracts.courierManager.deployed().then(function (instance) {
-  //     courierManagerInstance = instance;
-
-  //     return courierManagerInstance.getAddresses.call();
-  //   }).then(async function (address) {
-  //     console.log(address);
-  //     for (i = 0; i < address.length; i++) {
-  //       if (address[i] !== '0x0000000000000000000000000000000000000000') {
-  //         console.log(i);
-  //         courierManagerInstance.getCourier(i).then(function (courier) {
-  //         var courier = await courierManagerInstance.getCourier(i);
-  //         console.log(courier);
-  //         const card = document.createElement('div');
-  //         card.className = 'card parcel-card';
-  //         card.style.width = '18rem';
-  //         card.innerHTML =
-  //           `<img class="card-img-top" height="100px" width="100px" src="/images/courier.png" alt="Card image cap">
-  //           <h2>${courier[1]}</h2>
-  //           <p>${courier[2]}</p>
-  //           <div class="id-marker">&nbsp ${i} &nbsp </div>`;
-  //         // li.textContent = `ID: ${i}, Title: ${courier[1]}, Description: ${courier[2]}`;
-  //         courierList.appendChild(card);
-  //         });
-  //       }
-  //     }
-  //   }).catch(function (err) {
-  //     console.log(err.message);
-  //   });
-
-
-  //}
 
   viewCouriers: async function (event) {
     event.preventDefault();
@@ -164,7 +132,8 @@
             // Check if the address is valid
             if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
                 const courier = await courierManagerInstance.getCourier(i);
-                console.log('Courier details:', courier);
+                console.log(courier);
+                console.log('Inventory details:', courier);
 
                 // Create and append a card for each courier
                 const card = document.createElement('div');
@@ -172,10 +141,12 @@
                 card.style.width = '18rem';
 
                 card.innerHTML = `
+                     <h2>${courier[3]}</h2>
                     <img class="card-img-top" height="100px" width="100px" src="/images/courier.png" alt="Card image cap">
-                    <h2>${courier[1]}</h2>
+                    <h3>${courier[1]}</h3>
                     <p>${courier[2]}</p>
-                    <div class="id-marker">&nbsp ${i} &nbsp </div>
+                    <h5>${courier[4]}</h5>
+                    <div class="id-marker">&nbsp ${courier[5].c[0]} &nbsp </div>
                 `;
                 courierList.appendChild(card);
             }
@@ -185,19 +156,7 @@
     }
 }
 
-
-  
-
-    // const couriers = await courierManager.methods.getAllCouriers().call();
-    // const courierList = document.getElementById('courierList');
-    // courierList.innerHTML = '';
-    // couriers.forEach((courier) => {
-    //   const li = document.createElement('li');
-    //   li.textContent = `ID: ${courier.id}, Title: ${courier.title}, Description: ${courier.description}`;
-    //   courierList.appendChild(li);
-    // });
   }
-// };
 
 $(function () {
   $(window).load(function () {

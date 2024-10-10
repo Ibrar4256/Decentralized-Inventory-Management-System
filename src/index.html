@@ -5,12 +5,10 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>CryptoCourier</title>
-  <link rel="stylesheet" type="text/css" href="./css/index.css">
-
-  <!-- Bootstrap -->
+  <title>Inventory Manager</title>
   <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="./css/index.css">
+  <!-- Bootstrap -->
 </head>
 
 <body>
@@ -21,28 +19,72 @@
 
   <div class="body">
     <div class="forms">
+      <!-- Add Inventory Section -->
       <div class="form">
         <h2>Add Inventory</h2>
-        <input type="text" id="courierTitle" placeholder="Title" />
-        <input type="text" id="courierDescription" placeholder="Description" />
-        <input type="number" id="courierValue" placeholder="Value (ETH)" step="0.001" />
+
+        <!-- Category Dropdown -->
+        <label for="inventoryCategory">Category</label>
+        <select id="inventoryCategory" required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="Laptops">Laptops</option>
+          <option value="Monitors">Monitors</option>
+          <option value="Software Licenses">Software Licenses</option>
+          <option value="Servers">Servers</option>
+          <option value="Networking Equipment">Networking Equipment</option>
+          <option value="Printers">Printers</option>
+          <option value="Office Supplies">Office Supplies</option>
+        </select>
+
+        <!-- Inventory Title -->
+        <label for="courierTitle">Title</label>
+        <input type="text" id="courierTitle" placeholder="Title" required />
+
+        <!-- Inventory Description -->
+        <label for="courierDescription">Description</label>
+        <input type="text" id="courierDescription" placeholder="Description" required />
+
+        <!-- Quantity -->
+        <label for="inventoryQuantity">Quantity</label>
+        <input type="number" id="inventoryQuantity" placeholder="Quantity" min="1" required />
+
+        <!-- Location Dropdown -->
+        <label for="inventoryLocation">Storage Location</label>
+        <select id="inventoryLocation" required>
+          <option value="" disabled selected>Select Location</option>
+          <option value="Main Office">Main Office</option>
+          <option value="Data Center">Data Center</option>
+          <option value="Development Lab">Development Lab</option>
+          <option value="IT Support Room">IT Support Room</option>
+          <option value="Backup Storage">Backup Storage</option>
+        </select>
+
+        <!-- Add Inventory Button -->
         <button id="addCourierButton">Add Inventory</button>
       </div>
 
+      <!-- Issue Inventory Section -->
       <div class="form">
-        <h2>Remove Inventory</h2>
-        <input type="number" id="courierId" placeholder="Inventory ID" />
-        <button id="removeCourierButton">Remove Inventory</button>
-      </div>
+        <h2>Issue Inventory</h2>
 
+        <!-- Inventory ID -->
+        <label for="courierId">Inventory ID</label>
+        <input type="number" id="courierId" placeholder="Inventory ID" required />
+
+        <!-- Issue Inventory Button -->
+        <button id="removeCourierButton">Issue Inventory</button>
+      </div>
     </div>
 
+    <!-- View Inventory Section -->
     <h2>View Inventory</h2>
     <button id="viewCouriersButton">View Inventory</button>
+
+    <!-- Inventory List -->
     <div id="courierList" class="courier-container"></div>
   </div>
 
-
+  <!-- Scripts -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   <script src="js/web3.min.js"></script>

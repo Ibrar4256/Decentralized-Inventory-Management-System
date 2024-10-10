@@ -1,0 +1,36 @@
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.select-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background-color: white;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.option:hover {
+  background-color: #f0f0f0;
+}
