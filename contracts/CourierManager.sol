@@ -12,7 +12,7 @@ contract CourierManager {
    // uint256 public constant COURIER_FEE = 0.01 ether; // Set a fixed fee for adding a courier
 
     event CourierAdded(uint256 id, string title, string description, string category, string location, uint256 quantity, address courier);
-    event CourierRemoved(uint256 id);
+    event CourierRemoved(uint256 id, uint256 quantities);
 
     // Add courier with title, description,category, location, and quantity
     function addCourier(string memory _title, string memory _description, string memory _category, string memory _location, uint256 _quantity ) public returns(uint256){
@@ -38,18 +38,32 @@ contract CourierManager {
     }
 
     // Remove courier by ID
-    function removeCourier(uint256 _id) public {
-        require(_id < owners.length, "Invalid courier ID."); // Check if ID is valid
-        require(owners[_id] == msg.sender, "You must be the owner of the courier to remove it.");
+    // Updated removeCourier function to subtract a specified quantity
+function removeCourier(uint256 _id, uint256 _quantityToRemove) public {
+    require(_id < owners.length, "Invalid courier ID."); // Check if ID is valid
+    require(owners[_id] == msg.sender, "You must be the owner of the courier to modify it.");
+    require(quantities[_id] >= _quantityToRemove, "Insufficient quantity to remove."); // Check if enough quantity exists
 
-        owners[_id] = address(0); // Reset the owner's address
-        titles[_id] = ""; // Reset the title
-        descriptions[_id] = ""; // Reset the description
-        categories[_id] = ""; // Reset the category
-        locations[_id] = ""; // Reset the location
-        quantities[_id] = 0; // Reset the quantity
+    // Subtract the quantity
+    quantities[_id] -= _quantityToRemove;
 
-        emit CourierRemoved(_id); // Emit event for removal
+    // Emit an event if some quantity is removed
+    emit CourierRemoved(_id,_quantityToRemove);
+
+    // Optional: If all quantity is removed, you can leave the entry but with zero quantity
+    if (quantities[_id] == 0) {
+        // Optionally emit an event or leave the courier in the array with 0 quantity
+        emit CourierRemoved(_id, _quantityToRemove);
+    }
+}
+
+ function updateQuantity(uint256 _id, uint256 _additionalQuantity) public {
+        require(_id < owners.length, "Invalid courier ID.");
+        require(owners[_id] == msg.sender, "You must be the owner of the courier to modify it.");
+        
+        quantities[_id] += _additionalQuantity;
+        
+        emit CourierAdded(_id, titles[_id], descriptions[_id], categories[_id], locations[_id], quantities[_id], msg.sender);
     }
 
     // Getter functions

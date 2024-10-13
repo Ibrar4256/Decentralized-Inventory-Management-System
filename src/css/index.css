@@ -1,58 +1,152 @@
 .body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-  .navbar{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+.forms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.form h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form input,
+.form select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form button:hover {
+  background-color: #0056b3;
+}
+
+#viewCouriersButton {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#viewCouriersButton:hover {
+  text-align: center;
+  background-color: #218838;
+}
+
+.courier-container {
+  margin-top: 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #000;
+  color: #fff;
+}
+
+.navbar h1 {
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+#user-email {
+  margin-right: 10px;
+}
+
+#logout-button {
+  background-color: #fff;
+  color: #000;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+  #auth-section {
+    max-width: 300px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  #auth-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  #auth-section input {
+    display: block;
+    width: 100%;
     padding: 10px;
-    border-bottom: 1px solid black;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.08);
-    background-color: black;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+  }
+  
+  #auth-section button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
     color: white;
-    border-radius: 0 !important; 
-  }
-
-  input[type="text"],
-  input[type="number"] {
-    padding: 7px;
-    margin: 5px;
-    background-color: white;
-    border: 2px solid black;
-    border-radius: 10px;
-  }
-
-  button {
-    padding: 5px 10px;
-    margin: 5px;
+    border: none;
+    border-radius: 3px;
     cursor: pointer;
-    color: black;
-    background-color: white;
-    border: 3px solid black;
-    transition: all 0.3s ease-in-out;
-    font-weight: 800 !important;
-    border-radius: 10px;
   }
-
-  button:hover {
-    background-color: #333;
-    color: white;
-    background-color: black;
-
+  
+  #auth-section button:hover {
+    background-color: #0056b3;
   }
-
-  ul {
-    list-style-type: none;
-    padding: 0;
+  
+  #auth-section p {
+    text-align: center;
+    margin-top: 15px;
   }
-
+  
+  #auth-section a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  #auth-section a:hover {
+    text-decoration: underline;
+  }
   .parcel-card{
     display: flex;
     flex-direction: column;;
@@ -66,7 +160,7 @@
     position: relative;
     transition: all 200ms ease-in;
   }
-
+  
   .parcel-card:hover{
     box-shadow: 0 10px 15px rgba(0,0,0,0.08);
     scale: 105%;
@@ -82,36 +176,21 @@
     align-items: center;
   }
 
-  .id-marker{
+  .quantity-marker{
       position: absolute;
       top:5px;
       right:5px;
       padding: 5px 3px;
-
       color:white;
-      background-color: red;
       border-radius: 25px;
   }
+  .id-marker{
+    position: absolute;
+    top:5px;
+    left:5px;
+    padding: 5px 3px;
 
-  .forms{
-    display: flex;
-    flex-direction: row;
-    gap: 100px;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    margin:50px;
-  }
-
-  .form{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    border: 1px solid #ccc;
-    padding: 50px;
-    border-radius: 10px;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.08);
-  }
+    color:white;
+    background-color: blue;
+    border-radius: 25px;
+}

@@ -1,9 +1,45 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDWMbokzw48dVh45OJ4zRp8hjOJvumkYQs",
+  authDomain: "inventory-management-e2f52.firebaseapp.com",
+  projectId: "inventory-management-e2f52",
+  storageBucket: "inventory-management-e2f52.appspot.com",
+  messagingSenderId: "372682152682",
+  appId: "1:372682152682:web:5b54595ad0d2f72b659593",
+  measurementId: "G-5CN6HLB9PY"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
  App = {
   web3Provider: null,
   contracts: {},
+  currentUser: null,
+  isSigningUp: false,
 
   init: async function () {
+    await App.initAuth();
     return await App.initWeb3();
+  },
+
+  initAuth: function() {
+    return new Promise((resolve, reject) => {
+      auth.onAuthStateChanged(function(user) {
+        if (user && !App.isSigningUp) {
+          App.currentUser = user;
+          $('#auth-section').hide();
+          $('#app-content').show();
+          $('#user-email').text(user.email);
+        } else {
+          App.currentUser = null;
+          $('#auth-section').show();
+          $('#app-content').hide();
+          if (!App.isSigningUp) {
+            App.showLoginForm();
+          }
+        }
+        resolve();
+      });
+    });
   },
 
   initWeb3: async function () {
@@ -53,6 +89,96 @@
     return App.bindEvents();
   },
 
+  showLoginForm: function() {
+    $('#signup-form').hide();
+    $('#login-form').show();
+  },
+
+  showSignupForm: function() {
+    $('#login-form').hide();
+    $('#signup-form').show();
+  },
+
+
+  login: function(event) {
+    event.preventDefault();
+    const email = $('#login-email').val();
+    const password = $('#login-password').val();
+    auth.signInWithEmailAndPassword(email, password)
+      .then(function() {
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged In!',
+          text: 'You have successfully logged in.',
+          confirmButtonColor: '#3085d6'
+        });
+      })
+      .catch(function(error) {
+        console.error("Error logging in: ", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: error.message,
+          confirmButtonColor: '#d33'
+        });
+      });
+  },
+
+
+  signup: function(event) {
+    event.preventDefault();
+    App.isSigningUp = true;
+    const email = $('#signup-email').val();
+    const password = $('#signup-password').val();
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(function(userCredential) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Signed Up!',
+          text: 'Your account has been created successfully. Please log in.',
+          confirmButtonColor: '#3085d6'
+        }).then(() => {
+          $('#signup-email').val('');
+          $('#signup-password').val('');
+          return auth.signOut();
+        }).then(() => {
+          App.isSigningUp = false;
+          App.showLoginForm();
+        });
+      })
+      .catch(function(error) {
+        console.error("Error signing up: ", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Signup Failed',
+          text: error.message,
+          confirmButtonColor: '#d33'
+        });
+        App.isSigningUp = false;
+      });
+  },
+
+  logout: function() {
+    auth.signOut().then(function() {
+      console.log("User signed out");
+      Swal.fire({
+        icon: 'info',
+        title: 'Logged Out',
+        text: 'You have been successfully logged out.',
+        confirmButtonColor: '#3085d6'
+      });
+    }).catch(function(error) {
+      console.error("Error signing out: ", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Logout Failed',
+        text: 'An error occurred while logging out.',
+        confirmButtonColor: '#d33'
+      });
+    });
+  },
+
+
   bindEvents: function () {
     $(document).on('click', '#addCourierButton', App.addCourier);
     $(document).on('click', '#removeCourierButton', App.removeCourier);
@@ -60,108 +186,305 @@
   },
 
   addCourier: async function (event) {
+    if (!App.currentUser) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please log in to add inventory',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
     event.preventDefault();
-    const title = document.getElementById('courierTitle').value;
+    const assetTag = document.getElementById('courierTitle').value;
     const description = document.getElementById('courierDescription').value;
     const category = document.getElementById('inventoryCategory').value;
     const location = document.getElementById('inventoryLocation').value;
     const quantity = parseInt(document.getElementById('inventoryQuantity').value);
-  
-
-    // const value = web3._extend.utils.toWei(document.getElementById('courierValue').value, 'ether');
 
     var courierManagerInstance;
 
     web3.eth.getAccounts(function (error, accounts) {
       if (error) {
         console.log(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while fetching accounts.',
+          confirmButtonColor: '#d33'
+        });
+        return;
       }
       App.contracts.courierManager.deployed().then(async function (instance) {
         courierManagerInstance = instance;
 
-        // const fixedAmount = web3._extend.utils.toWei("0.01", "ether"); // Fixed value for transaction
-        await courierManagerInstance.addCourier(title, description, category, location, quantity , { from: accounts[0]});
-        console.log("Inventory added by", accounts[0]);
+        try {
+          const addresses = await courierManagerInstance.getAddresses.call();
+          let existingItemId = -1;
 
-        const addresses = await courierManagerInstance.getAddresses.call();
-         console.log("Inventory addresses:", addresses);
+          for (let i = 0; i < addresses.length; i++) {
+            if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
+              const courier = await courierManagerInstance.getCourier(i);
+              if (courier[1] === assetTag) {
+                existingItemId = i;
+                break;
+              }
+            }
+          }
+
+          if (existingItemId !== -1) {
+            await courierManagerInstance.updateQuantity(existingItemId, quantity, { from: accounts[0] });
+            Swal.fire({
+              icon: 'success',
+              title: 'Inventory Updated',
+              text: `Quantity updated for item ID: ${existingItemId}`,
+              confirmButtonColor: '#3085d6'
+            });
+          } else {
+            await courierManagerInstance.addCourier(assetTag, description, category, location, quantity, { from: accounts[0] });
+            Swal.fire({
+              icon: 'success',
+              title: 'Inventory Added',
+              text: 'New inventory item has been added successfully.',
+              confirmButtonColor: '#3085d6'
+            });
+          }
+
+          // Clear the form
+          document.getElementById('courierTitle').value = '';
+          document.getElementById('courierDescription').value = '';
+          document.getElementById('inventoryCategory').value = '';
+          document.getElementById('inventoryLocation').value = '';
+          document.getElementById('inventoryQuantity').value = '';
+
+          // Refresh the inventory list
+          App.viewCouriers(event);
+        } catch (err) {
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while adding/updating inventory.',
+            confirmButtonColor: '#d33'
+          });
+        }
       }).catch(function (err) {
         console.log(err.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while deploying the contract.',
+          confirmButtonColor: '#d33'
+        });
       });
     });
   },
 
   removeCourier: async function (event) {
+    if (!App.currentUser) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please log in to issue inventory',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    } else if (App.currentUser.email !== "admin@gmail.com") {
+      console.log("Email", App.currentUser.email);
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'You are not authorized to issue inventory',
+        confirmButtonColor: '#d33'
+      });
+      return;
+    }
     event.preventDefault();
+
     const id = parseInt(document.getElementById('courierId').value);
+    const quantityToRemove = parseInt(document.getElementById('quantityToRemove').value);
+
+    if (isNaN(quantityToRemove) || quantityToRemove <= 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Quantity',
+        text: 'Please enter a valid quantity to remove.',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
     var courierManagerInstance;
 
     web3.eth.getAccounts(function (error, accounts) {
       if (error) {
         console.log(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while fetching accounts.',
+          confirmButtonColor: '#d33'
+        });
+        return;
       }
 
       var account = accounts[0];
       App.contracts.courierManager.deployed().then(async function (instance) {
         courierManagerInstance = instance;
-        await courierManagerInstance.removeCourier(id, { from: account });
-        console.log("Inventory Issued");
 
+        try {
+          await courierManagerInstance.removeCourier(id, quantityToRemove, { from: account });
+          Swal.fire({
+            icon: 'success',
+            title: 'Inventory Issued',
+            text: 'Quantity removed successfully',
+            confirmButtonColor: '#3085d6'
+          });
+        } catch (err) {
+          console.log(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error removing quantity: ' + err.message,
+            confirmButtonColor: '#d33'
+          });
+        }
       }).catch(function (err) {
         console.log(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred while deploying the contract.',
+          confirmButtonColor: '#d33'
+        });
       });
-    })
+    });
   },
 
   viewCouriers: async function (event) {
+    if (!App.currentUser) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please log in to view inventory',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
     event.preventDefault();
     var courierManagerInstance;
     const courierList = document.getElementById('courierList');
 
-    courierList.innerHTML = ''; // Clear the list before adding new entries
+    courierList.innerHTML = '';
 
     try {
-        // Get the deployed instance of the contract
-        courierManagerInstance = await App.contracts.courierManager.deployed();
+      courierManagerInstance = await App.contracts.courierManager.deployed();
+      const addresses = await courierManagerInstance.getAddresses.call();
+      let lowQuantityItems = [];
+      let itemCount = 0;
 
-        // Call getAddresses to get the list of courier addresses
-        const addresses = await courierManagerInstance.getAddresses.call();
-        console.log(addresses[0]);
-        // Loop through addresses and fetch courier details
-        for (let i = 0; i < addresses.length; i++) {
-            // Check if the address is valid
-            if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
-                const courier = await courierManagerInstance.getCourier(i);
-                console.log(courier);
-                console.log('Inventory details:', courier);
+      for (let i = 0; i < addresses.length; i++) {
+        if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
+          itemCount++;
+          const courier = await courierManagerInstance.getCourier(i);
+          const quantity = parseInt(courier[5].toString());
+          
+          const quantityColor = quantity < 5 ? 'red' : 'grey';
+          
+          if (quantity < 5) {
+            lowQuantityItems.push(`${courier[1]} (ID: ${i}, Quantity: ${quantity})`);
+          }
 
-                // Create and append a card for each courier
-                const card = document.createElement('div');
-                card.className = 'card parcel-card';
-                card.style.width = '18rem';
+          const card = document.createElement('div');
+          card.className = 'card parcel-card';
+          card.style.width = '18rem';
 
-                card.innerHTML = `
-                     <h2>${courier[3]}</h2>
-                    <img class="card-img-top" height="100px" width="100px" src="/images/courier.png" alt="Card image cap">
-                    <h3>${courier[1]}</h3>
-                    <p>${courier[2]}</p>
-                    <h5>${courier[4]}</h5>
-                    <div class="id-marker">&nbsp ${courier[5].c[0]} &nbsp </div>
-                `;
-                courierList.appendChild(card);
-            }
+          card.innerHTML = `
+            <h2>${courier[3]}</h2>
+            <img class="card-img-top" height="120px" width="130px" src="/images/courier.png" alt="Card image cap">
+            <h3>${courier[1]}</h3>
+            <p>${courier[2]}</p>
+            <h5>${courier[4]}</h5>
+            <div class="quantity-marker" style="background-color: ${quantityColor};">&nbsp ${quantity} &nbsp </div>
+            <div class="id-marker">&nbsp ${i} &nbsp </div>
+            <button class="re-order-btn" data-id="${i}">Re-order</button>
+          `;
+          courierList.appendChild(card);
+
+          card.querySelector('.re-order-btn').addEventListener('click', App.handleReorder);
         }
-    } catch (err) {
-        console.log('Error:', err.message);
-    }
-}
+      }
 
-  }
+      if (itemCount === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'No Inventory',
+          text: 'There are no items in the inventory.',
+          confirmButtonColor: '#3085d6'
+        });
+      } else if (lowQuantityItems.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Low Quantity Alert',
+          html: `The following items have low quantity (less than 5) and should be re-ordered:<br><br>${lowQuantityItems.join('<br>')}`,
+          confirmButtonColor: '#3085d6'
+        });
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while fetching inventory.',
+        confirmButtonColor: '#d33'
+      });
+    }
+  },
+
+  handleReorder: async function(event) {
+    const id = event.target.getAttribute('data-id');
+    try {
+      const courierManagerInstance = await App.contracts.courierManager.deployed();
+      const courier = await courierManagerInstance.getCourier(id);
+      
+      document.getElementById('inventoryCategory').value = courier[3];
+      document.getElementById('courierTitle').value = courier[1];
+      document.getElementById('courierDescription').value = courier[2];
+      document.getElementById('inventoryQuantity').value = '';
+      document.getElementById('inventoryLocation').value = courier[4];
+
+      document.querySelector('.forms').scrollIntoView({ behavior: 'smooth' });
+
+      Swal.fire({
+        icon: 'info',
+        title: 'Re-order',
+        text: 'The re-order form has been pre-filled. Please enter the quantity and submit to update the inventory.',
+        confirmButtonColor: '#3085d6'
+      });
+    } catch (err) {
+      console.error('Error handling reorder:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while handling the re-order.',
+        confirmButtonColor: '#d33'
+      });
+    }
+  },  }
 
 $(function () {
   $(window).load(function () {
     App.init();
-  });
+    // App.showLoginForm();
+});
+
+$('#show-signup').on('click', App.showSignupForm);
+$('#show-login').on('click', App.showLoginForm);
+
+// Modify existing event listeners
+$('#login-form-element').on('submit', App.login);
+$('#signup-form-element').on('submit', App.signup);
+$('#logout-button').on('click', App.logout);
 });
 
 
