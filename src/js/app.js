@@ -374,46 +374,51 @@ const auth = firebase.auth();
     event.preventDefault();
     var courierManagerInstance;
     const courierList = document.getElementById('courierList');
-
+  
     courierList.innerHTML = '';
-
+  
     try {
       courierManagerInstance = await App.contracts.courierManager.deployed();
       const addresses = await courierManagerInstance.getAddresses.call();
       let lowQuantityItems = [];
       let itemCount = 0;
-
+  
       for (let i = 0; i < addresses.length; i++) {
         if (addresses[i] !== '0x0000000000000000000000000000000000000000') {
           itemCount++;
           const courier = await courierManagerInstance.getCourier(i);
           const quantity = parseInt(courier[5].toString());
           
-          const quantityColor = quantity < 5 ? 'red' : 'grey';
-          
           if (quantity < 5) {
             lowQuantityItems.push(`${courier[1]} (ID: ${i}, Quantity: ${quantity})`);
           }
-
+  
           const card = document.createElement('div');
-          card.className = 'card parcel-card';
-          card.style.width = '18rem';
-
+          card.className = 'inventory-card';
           card.innerHTML = `
-            <h2>${courier[3]}</h2>
-            <img class="card-img-top" height="120px" width="130px" src="/images/courier.png" alt="Card image cap">
-            <h3>${courier[1]}</h3>
-            <p>${courier[2]}</p>
-            <h5>${courier[4]}</h5>
-            <div class="quantity-marker" style="background-color: ${quantityColor};">&nbsp ${quantity} &nbsp </div>
-            <div class="id-marker">&nbsp ${i} &nbsp </div>
-            <button class="re-order-btn" data-id="${i}">Re-order</button>
+            <div class="card-header">
+              <h3 class="category">${courier[3]}</h3>
+              <span class="quantity">Quantity: ${quantity}</span>
+            </div>
+            <div class="card-body">
+              <p class="asset-tag">${courier[1]}</p>
+              <p class="description">${courier[2]}</p>
+              <p class="location">${courier[4]}</p>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary re-order-btn" data-id="${i}">Re-order</button>
+              <button class="btn btn-warning issue-btn" data-id="${i}" data-asset="${courier[1]}">Issue Inventory</button>
+              <button class="btn btn-info history-btn" data-id="${i}">History</button>
+            </div>
           `;
           courierList.appendChild(card);
-
+  
           card.querySelector('.re-order-btn').addEventListener('click', App.handleReorder);
+          card.querySelector('.issue-btn').addEventListener('click', App.handleIssue);
+          card.querySelector('.history-btn').addEventListener('click', App.handleHistory);
         }
       }
+  
 
       if (itemCount === 0) {
         Swal.fire({
@@ -441,6 +446,37 @@ const auth = firebase.auth();
     }
   },
 
+  handleIssue: function(event) {
+    const id = event.target.getAttribute('data-id');
+    const assetTag = event.target.getAttribute('data-asset');
+    
+    document.getElementById('courierId').value = id;
+    document.getElementById('courierTitle').value = assetTag;
+    document.getElementById('quantityToRemove').value = '';
+    document.getElementById('quantityToRemove').focus();
+  
+    document.querySelector('.forms').scrollIntoView({ behavior: 'smooth' });
+  
+    Swal.fire({
+      icon: 'info',
+      title: 'Issue Inventory',
+      text: 'The issue form has been pre-filled. Please enter the quantity to issue and submit.',
+      confirmButtonColor: '#3085d6'
+    });
+  },
+  
+  handleHistory: function(event) {
+    const id = event.target.getAttribute('data-id');
+    
+    Swal.fire({
+      icon: 'info',
+      title: 'History',
+      text: `Viewing history for item ID: ${id}. This feature is not yet implemented.`,
+      confirmButtonColor: '#3085d6'
+    });
+  },
+  
+  // Update the handleReorder function
   handleReorder: async function(event) {
     const id = event.target.getAttribute('data-id');
     try {
@@ -452,9 +488,9 @@ const auth = firebase.auth();
       document.getElementById('courierDescription').value = courier[2];
       document.getElementById('inventoryQuantity').value = '';
       document.getElementById('inventoryLocation').value = courier[4];
-
+  
       document.querySelector('.forms').scrollIntoView({ behavior: 'smooth' });
-
+  
       Swal.fire({
         icon: 'info',
         title: 'Re-order',
